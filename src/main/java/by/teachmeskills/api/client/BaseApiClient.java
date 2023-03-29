@@ -6,6 +6,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.apache.http.HttpStatus;
 
 import java.util.Map;
 
@@ -29,6 +30,18 @@ public class BaseApiClient {
                 .then()
                 .extract()
                 .response();
+    }
+
+    public <R> R post(String path, Object body, Class<R> responseClass) {
+        return getRequestSpecification()
+                .body(body)
+                .when()
+                .post(path)
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .body()
+                .as(responseClass);
     }
 
     public Response put(String path, Object body) {

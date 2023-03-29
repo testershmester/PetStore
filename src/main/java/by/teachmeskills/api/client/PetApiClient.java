@@ -7,9 +7,6 @@ import org.apache.http.HttpStatus;
 
 import java.util.Map;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.not;
-
 @Log4j2
 public class PetApiClient extends BaseApiClient {
 
@@ -19,12 +16,7 @@ public class PetApiClient extends BaseApiClient {
 
     public Pet postAddPet(Pet body) {
         log.info("POST /v2/pet");
-        return post(PET_PATH, body).then()
-                                   .statusCode(HttpStatus.SC_OK)
-                                   .body("id", not(empty()))
-                                   .extract()
-                                   .body()
-                                   .as(Pet.class);
+        return post(PET_PATH, body, Pet.class);
     }
 
     public Pet getPet(long id) {
