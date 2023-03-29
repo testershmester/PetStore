@@ -1,4 +1,4 @@
-package by.teachmeskills.api.dto;
+package by.teachmeskills.api.dto.pet;
 
 public enum Status {
     available,

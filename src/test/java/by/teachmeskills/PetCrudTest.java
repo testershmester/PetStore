@@ -1,46 +1,29 @@
 package by.teachmeskills;
 
-import by.teachmeskills.api.dto.Category;
-import by.teachmeskills.api.dto.Pet;
-import by.teachmeskills.api.dto.Status;
-import by.teachmeskills.api.dto.Tag;
-import io.restassured.http.ContentType;
+import by.teachmeskills.api.client.PetApiClient;
+import by.teachmeskills.api.dto.ApiResponse;
+import by.teachmeskills.api.dto.pet.Category;
+import by.teachmeskills.api.dto.pet.Pet;
+import by.teachmeskills.api.dto.pet.Status;
+import by.teachmeskills.api.dto.pet.Tag;
+import com.github.javafaker.Faker;
+import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.not;
 
 public class PetCrudTest {
 
+    public static final String PET_NOT_FOUND = "Pet not found";
+
+    private final Faker faker = new Faker();
+
     @Test
     public void createPet() {
-        Pet expPet = Pet.builder()
-                        .id(0)
-                        .name("Doggie")
-                        .status(Status.available)
-                        .photoUrls(List.of("https://avatars.mds.yandex.net/image.png"))
-                        .category(new Category(12345, "categoryName"))
-                        .tags(List.of(new Tag(1, "dog")))
-                        .build();
-        Pet createdPet = given()
-                .contentType(ContentType.JSON)
-                .body(expPet)
-                .when()
-//              .                  log().ifValidationFails(LogDetail.ALL, true)
-                .log().all()
-                .post("https://petstore.swagger.io/v2/pet")
-                .then()
-//              .                  log().ifValidationFails(LogDetail.ALL, true)
-                .log().all()
-                .statusCode(200)
-                .body("id", not(empty()))
-                .extract()
-                .body()
-                .as(Pet.class);
+        Pet expPet = createPetModel();
+        Pet createdPet = new PetApiClient().postAddPet(expPet);
 
         assertThat(createdPet).as("\"id\" should be generated in response")
                               .usingRecursiveComparison()
@@ -51,17 +34,47 @@ public class PetCrudTest {
                               .ignoringFields("id")
                               .isEqualTo(expPet);
 
-        Pet actPet = given()
-                .contentType(ContentType.JSON)
-                .pathParams("id", createdPet.getId())
-                .when()
-                .get("https://petstore.swagger.io/v2/pet/{id}")
-                .then()
-                .statusCode(200)
-                .extract()
-                .body()
-                .as(Pet.class);
+        Pet actPet = new PetApiClient().getPet(createdPet.getId());
 
         assertThat(actPet).as("GET /pet/{id} response is correct").isEqualTo(createdPet);
+    }
+
+    @Test
+    public void updatePet() {
+        Pet expPet = createPetModel();
+        Pet createdPet = new PetApiClient().postAddPet(expPet);
+        String expName = createdPet.getName() + "_updated";
+        createdPet.setName(expName);
+
+        Pet actPet = new PetApiClient().putUpdatePet(createdPet);
+
+        assertThat(actPet).as("PUT /pet response is correct. Updated name is correct")
+                          .isEqualTo(createdPet);
+    }
+
+    @Test
+    public void deletePet() {
+        Pet expPet = createPetModel();
+        Pet createdPet = new PetApiClient().postAddPet(expPet);
+
+        ApiResponse apiResponse = new PetApiClient().deletePet(createdPet.getId());
+        assertThat(apiResponse.getMessage()).as("DELETE /pet/{pedId] response contains correct message (petId)")
+                                            .isEqualTo(String.valueOf(createdPet.getId()));
+
+        ApiResponse errorResponse = new PetApiClient().getPetResponse(createdPet.getId(), HttpStatus.SC_NOT_FOUND);
+        assertThat(errorResponse.getMessage()).as("Message in response is correct")
+                                         .isEqualTo(PET_NOT_FOUND);
+
+    }
+
+    private Pet createPetModel() {
+        return Pet.builder()
+                  .id(0)
+                  .name(faker.animal().name())
+                  .status(Status.available)
+                  .photoUrls(List.of(faker.internet().image()))
+                  .category(new Category(faker.number().numberBetween(0, 5), faker.funnyName().name()))
+                  .tags(List.of(new Tag(1, "dog")))
+                  .build();
     }
 }

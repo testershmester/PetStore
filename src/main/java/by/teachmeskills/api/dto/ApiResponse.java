@@ -5,7 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class Category {
-    public int id;
-    public String name;
+public class ApiResponse {
+    private String code;
+    private String type;
+    private String message;
 }

@@ -17,6 +17,8 @@
         <rest-assured.version>5.3.0</rest-assured.version>
         <lombok.version>1.18.26</lombok.version>
         <gson.version>2.10.1</gson.version>
+        <faker.version>1.0.2</faker.version>
+        <log4j.version>2.18.0</log4j.version>
     </properties>
 
     <dependencies>
@@ -49,6 +51,17 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>${faker.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
         </dependency>
     </dependencies>
 </project>
